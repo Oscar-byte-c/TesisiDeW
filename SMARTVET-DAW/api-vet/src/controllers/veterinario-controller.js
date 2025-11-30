@@ -1,9 +1,9 @@
 
 import { sendMailToRegister,sendMailToRecoveryPassword } from "../helpers/sendMail.js"
+import Estudiante from "../models/estudiante.js"
 import { crearTokenJWT } from "../middlewares/JWT.js"
-import Veterinario from "../models/Veterinario.js"
 import mongoose from "mongoose"
-
+import Item from "../models/item.js";
 
 
 const registro = async (req,res)=>{
@@ -13,14 +13,14 @@ const registro = async (req,res)=>{
         const {email,password} = req.body
         //Paso 2
         if (Object.values(req.body).includes("")) return res.status(400).json({msg:"Lo sentimos, debes llenar todos los campos"})
-        const verificarEmailBDD = await Veterinario.findOne({email})
+        const verificarEmailBDD = await Estudiante.findOne({email})
         if(verificarEmailBDD) return res.status(400).json({msg:"Lo sentimos, el email ya se encuentra registrado"})
         //Paso 3
-        const nuevoVeterinario = new Veterinario(req.body)
-        nuevoVeterinario.password = await nuevoVeterinario.encryptPassword(password)
-        const token = nuevoVeterinario.createToken()
+        const nuevoEstudiante = new Estudiante(req.body)
+        nuevoEstudiante.password = await nuevoEstudiante.encryptPassword(password)
+        const token = nuevoEstudiante.createToken()
         await sendMailToRegister(email,token)
-        await nuevoVeterinario.save()
+        await nuevoEstudiante.save()
         //Paso 4
         res.status(200).json({msg:"Revisa tu correo electrónico para confirmar tu cuenta"})
 
@@ -36,12 +36,12 @@ const confirmarMail = async (req, res) => {
         //Paso 1 verificar el token
         const { token } = req.params
         //Paso 2 verificar los datos
-        const veterinarioBDD = await Veterinario.findOne({ token })
-        if (!veterinarioBDD) return res.status(404).json({ msg: "Token inválido o cuenta ya confirmada" })
+        const estudianteBDD = await Estudiante.findOne({ token })
+        if (!estudianteBDD) return res.status(404).json({ msg: "Token inválido o cuenta ya confirmada" })
         //Paso 3
-        veterinarioBDD.token = null
-        veterinarioBDD.confirmMail = true
-        await veterinarioBDD.save()
+        estudianteBDD.token = null
+        estudianteBDD.confirmMail = true
+        await estudianteBDD.save()
         //Paso 4
         res.status(200).json({ msg: "Cuenta confirmada, ya puedes iniciar sesión" })
 
@@ -55,12 +55,12 @@ const confirmarMail = async (req, res) => {
         const{email} = req.body
         //Paso2
         if (!email) return res.status(400).json({ msg: "Debes ingresar un correo electrónico" })
-        const veterinarioBDD = await Veterinario.findOne({ email })
-        if (!veterinarioBDD) return res.status(404).json({ msg: "El usuario no se encuentra registrado" })
+        const estudianteBDD = await Estudiante.findOne({ email })
+        if (!estudianteBDD) return res.status(404).json({ msg: "El usuario no se encuentra registrado" })
         //Paso3
-        const token = veterinarioBDD.createToken()//ABC123
-        veterinarioBDD.token = token
-        await veterinarioBDD.save()
+        const token = estudianteBDD.createToken()//ABC123
+        estudianteBDD.token = token
+        await estudianteBDD.save()
         //Correo 
         //Paso 4
         await sendMailToRecoveryPassword(email,token)
@@ -79,10 +79,10 @@ const confirmarMail = async (req, res) => {
             //Paso 1
             const{token} = req.params
             //Paso2
-            const veterinarioBDD = await Veterinario.findOne({token})
-            if(veterinarioBDD?.token !== token) return res.status(404).json({msg:"Lo sentimos, no se puede validar la cuenta"})
+            const estudianteBDD = await Estudiante.findOne({token})
+            if(estudianteBDD?.token !== token) return res.status(404).json({msg:"Lo sentimos, no se puede validar la cuenta"})
             //Paso3
-            //veterinarioBDD?.token = token
+            //estudianteBDD?.token = token
             //Paso4
             res.status(200).json({msg:"Token confirmado, ya puedes crear tu nuevo password"}) 
             
@@ -101,13 +101,13 @@ const confirmarMail = async (req, res) => {
             //Paso 2
             if (Object.values(req.body).includes("")) return res.status(404).json({msg:"Debes llenar todos los campos"})
             if(password !== confirmpassword) return res.status(404).json({msg:"Los passwords no coinciden"})
-            const veterinarioBDD = await Veterinario.findOne({token})
-            if(!veterinarioBDD) return res.status(404).json({msg:"No se puede validar la cuenta"})
+            const estudianteBDD = await Estudiante.findOne({token})
+            if(!estudianteBDD) return res.status(404).json({msg:"No se puede validar la cuenta"})
             
             //Paso 3
-            veterinarioBDD.password = await veterinarioBDD.encryptPassword(password)
-            veterinarioBDD.token = null
-            await veterinarioBDD.save()
+            estudianteBDD.password = await estudianteBDD.encryptPassword(password)
+            estudianteBDD.token = null
+            await estudianteBDD.save()
 
             //Paso 4
             res.status(200).json({msg:"Felicitaciones, ya puedes iniciar sesión con tu nuevo password"}) 
@@ -123,17 +123,17 @@ const confirmarMail = async (req, res) => {
             const {email,password} = req.body
             //Paso 2
             if (Object.values(req.body).includes("")) return res.status(404).json({msg:"Debes llenar todos los campos"})
-            const veterinarioBDD = await Veterinario.findOne({ email })
-            if (!veterinarioBDD) return res.status(404).json({ msg: "El usuario no se encuentra registrado" })
+            const estudianteBDD = await Estudiante.findOne({ email })
+            if (!estudianteBDD) return res.status(404).json({ msg: "El usuario no se encuentra registrado" })
 
-            if(!veterinarioBDD.confirmMail) return res.status(403).json({ msg: "Debes verificar la cuenta antes de inciar sesión" })
+            if(!estudianteBDD.confirmMail) return res.status(403).json({ msg: "Debes verificar la cuenta antes de inciar sesión" })
 
-            const verificarPassword = await veterinarioBDD.matchPassword(password)
+            const verificarPassword = await estudianteBDD.matchPassword(password)
             if(!verificarPassword) return res.status(401).json({ msg: "El password no es correcto" })
 
             //Paso 3
-            const{nombre,apellido,direccion,telefono,_id,rol} = veterinarioBDD
-            const token = crearTokenJWT(veterinarioBDD._id,veterinarioBDD.rol)
+            const{nombre,apellido,direccion,celular,_id,rol} = estudianteBDD
+            const token = crearTokenJWT(estudianteBDD._id,estudianteBDD.rol)
 
             //Paso 4 
             res.status(200).json({
@@ -141,10 +141,10 @@ const confirmarMail = async (req, res) => {
                 nombre,
                 apellido,
                 direccion,
-                telefono,
+                celular,
                 rol,
                 _id,
-                email:veterinarioBDD.email
+                email:estudianteBDD.email
 
         })
         
@@ -155,48 +155,48 @@ const confirmarMail = async (req, res) => {
     }
 
     const perfil =(req,res)=>{
-    const {token,confirmEmail,createdAt,updatedAt,__v,...datosPerfil} = req.veterinarioHeader
+    const {token,confirmEmail,createdAt,updatedAt,__v,...datosPerfil} = req.estudianteHeader
     res.status(200).json(datosPerfil)
     }
 
     const actualizarPassword = async (req,res)=>{
     try {
-        const veterinarioBDD = await Veterinario.findById(req.veterinarioHeader._id)
-        if(!veterinarioBDD) return res.status(404).json({msg:`Lo sentimos, no existe el veterinario ${id}`})
-        const verificarPassword = await veterinarioBDD.matchPassword(req.body.passwordactual)
+        const estudianteBDD = await Estudiante.findById(req.estudianteHeader._id)
+        if(!estudianteBDD) return res.status(404).json({msg:`Lo sentimos, no existe el estudiante ${id}`})
+        const verificarPassword = await estudianteBDD.matchPassword(req.body.passwordactual)
         if(!verificarPassword) return res.status(404).json({msg:"Lo sentimos, el password actual no es el correcto"})
-        veterinarioBDD.password = await veterinarioBDD.encryptPassword(req.body.passwordnuevo)
-        await veterinarioBDD.save()
+        estudianteBDD.password = await estudianteBDD.encryptPassword(req.body.passwordnuevo)
+        await estudianteBDD.save()
         res.status(200).json({msg:"Password actualizado correctamente"})
     } catch (error) {
         res.status(500).json({ msg: `❌ Error en el servidor - ${error}` })
     }
 }
 
-    const actualizarPerfil = async (req,res)=>{
+   const actualizarPerfil = async (req,res)=>{
 
     try {
         const {id} = req.params
         const {nombre,apellido,direccion,celular,email} = req.body
         if( !mongoose.Types.ObjectId.isValid(id) ) return res.status(400).json({msg:`ID inválido: ${id}`})
-        const veterinarioBDD = await Veterinario.findById(id)
-        if(!veterinarioBDD) return res.status(404).json({ msg: `No existe el veterinario con ID ${id}` })
+        const estudianteBDD = await Estudiante.findById(id)
+        if(!estudianteBDD) return res.status(404).json({ msg: `No existe el estudiante con ID ${id}` })
         if (Object.values(req.body).includes("")) return res.status(400).json({msg:"Debes llenar todos los campos"})
-        if (veterinarioBDD.email !== email)
+        if (estudianteBDD.email !== email)
         {
-            const emailExistente  = await Veterinario.findOne({email})
+            const emailExistente  = await Estudiante.findOne({email})
             if (emailExistente )
             {
                 return res.status(404).json({msg:`El email ya se encuentra registrado`})  
             }
         }
-        veterinarioBDD.nombre = nombre ?? veterinarioBDD.nombre
-        veterinarioBDD.apellido = apellido ?? veterinarioBDD.apellido
-        veterinarioBDD.direccion = direccion ?? veterinarioBDD.direccion
-        veterinarioBDD.celular = celular ?? veterinarioBDD.celular
-        veterinarioBDD.email = email ?? veterinarioBDD.email
-        await veterinarioBDD.save()
-        res.status(200).json(veterinarioBDD)
+        estudianteBDD.nombre = nombre ?? estudianteBDD.nombre
+        estudianteBDD.apellido = apellido ?? estudianteBDD.apellido
+        estudianteBDD.direccion = direccion ?? estudianteBDD.direccion
+        estudianteBDD.celular = celular ?? estudianteBDD.celular
+        estudianteBDD.email = email ?? estudianteBDD.email
+        await estudianteBDD.save()
+        res.status(200).json(estudianteBDD)
         
     } catch (error) {
         console.error(error)
@@ -204,7 +204,79 @@ const confirmarMail = async (req, res) => {
     }
 }
 
+    /**
+ * SB-B002 – GET /desktop
+ * Devuelve los ítems raíz del usuario autenticado
+ */
+const getDesktop = async (req, res) => {
+  try {
+    const userId = req.estudianteHeader._id;
 
+    const items = await Item.find({
+      userId,
+      parentId: null, // solo ítems raíz
+    }).lean();
+
+    return res.status(200).json({
+      ok: true,
+      items,
+    });
+  } catch (error) {
+    console.error("❌ Error en getDesktop:", error);
+    return res
+      .status(500)
+      .json({ ok: false, msg: `Error en el servidor - ${error}` });
+  }
+};
+
+/**
+ * SB-B003 – POST /items
+ * Crea un nuevo ítem asociado al usuario autenticado
+ */
+const createItem = async (req, res) => {
+  try {
+    const userId = req.estudianteHeader._id;
+    const { type, name, url, parentId, x, y } = req.body;
+
+    // Validaciones básicas
+    if (!type || !name) {
+      return res
+        .status(400)
+        .json({ ok: false, msg: "Tipo y nombre son obligatorios" });
+    }
+
+    if (type === "link" && !url) {
+      return res
+        .status(400)
+        .json({ ok: false, msg: "La URL es obligatoria para enlaces" });
+    }
+
+    const newItem = new Item({
+      userId,
+      type,
+      name,
+      url: url || null,
+      parentId: parentId || null,
+      position: {
+        x: x ?? 100,
+        y: y ?? 100,
+      },
+    });
+
+    await newItem.save();
+
+    return res.status(201).json({
+      ok: true,
+      msg: "Ítem creado exitosamente",
+      item: newItem,
+    });
+  } catch (error) {
+    console.error("❌ Error en createItem:", error);
+    return res
+      .status(500)
+      .json({ ok: false, msg: `Error en el servidor - ${error}` });
+  }
+};
 
 export {
     registro,
@@ -215,6 +287,9 @@ export {
     login,
     perfil,
     actualizarPassword,
-    actualizarPerfil
+    actualizarPerfil,
+    getDesktop,
+    createItem 
+    
     
 }
