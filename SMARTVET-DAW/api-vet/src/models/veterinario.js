@@ -1,4 +1,4 @@
-import {Schema, model, version} from 'mongoose'
+import mongoose, {Schema,model} from 'mongoose'
 import bcrypt from 'bcryptjs'
 
 const veterinarioSchema = new Schema({
@@ -95,4 +95,4 @@ veterinarioSchema.methods.createToken = function() {
     return tokenGenerado;
 }
 
-export default model('veterinario', veterinarioSchema)
+export default model('Veterinario', veterinarioSchema)

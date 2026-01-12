@@ -18,7 +18,7 @@ const Dashboard = () => {
                 <h2 className='text-4xl font-black text-center text-slate-200'>SmartVET</h2>
 
                 <img src="https://cdn-icons-png.flaticon.com/512/2138/2138508.png" alt="img-client" className="m-auto mt-8 p-1 border-2 border-slate-500 rounded-full" width={120} height={120} />
-                <p className='text-slate-400 text-center my-4 text-sm'> <span className='bg-green-600 w-3 h-3 inline-block rounded-full'></span> Bienvenido - {user?.nombre}</p>
+                <p className='text-slate-400 text-center my-4 text-sm'> <span className='bg-green-600 w-3 h-3 inline-block rounded-full'></span>  Bienvenido - {user?.nombre || user?.nombrePropietario}</p>
                 <p className='text-slate-400 text-center my-4 text-sm'> Rol - {user?.rol} </p>
                 <hr className="mt-5 border-slate-500" />
 
@@ -29,7 +29,7 @@ const Dashboard = () => {
                     </li>
 
                     <li className="text-center">
-                        <Link to='/dashboard' className={`${urlActual === '/dashboard' ? 'text-slate-200 bg-gray-900 px-3 py-2 rounded-md text-center' : 'text-slate-600'} text-xl block mt-2 hover:text-slate-600`}>Perfil</Link>
+                        <Link to='/dashboard/profile' className={`${urlActual === '/dashboard/profile' ? 'text-slate-200 bg-gray-900 px-3 py-2 rounded-md text-center' : 'text-slate-600'} text-xl block mt-2 hover:text-slate-600`}>Perfil</Link>
                     </li>
 
 

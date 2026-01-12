@@ -19,14 +19,17 @@ const storeProfile = create((set) => ({
     clearUser: () => set({ user: null }),
     profile: async () => {
         try {
-            const url = `${import.meta.env.VITE_BACKEND_URL}/veterinario/perfil`
+            const storedUser = JSON.parse(localStorage.getItem("auth-token"))
+            const endpoint = storedUser.state.rol ==="veterinario"
+                ? "veterinario/perfil"
+                : "paciente/perfil"
+            const url = `${import.meta.env.VITE_BACKEND_URL}/${endpoint}`
             const respuesta = await axios.get(url, getAuthHeaders())
             set({ user: respuesta.data })
         } catch (error) {
             console.error(error)
         }
     },
-
 
     updateProfile:async(url, data)=>{
         try {
@@ -38,12 +41,11 @@ const storeProfile = create((set) => ({
             toast.error(error.response?.data?.msg)
         }
     },
-
-    updatePasswordProfile: async(url,data)=>{
+    
+    updatePasswordProfile:async(url,data)=>{
         try {
             const respuesta = await axios.put(url, data, getAuthHeaders())
             return respuesta
-            
         } catch (error) {
             console.log(error)
             toast.error(error.response?.data?.msg)

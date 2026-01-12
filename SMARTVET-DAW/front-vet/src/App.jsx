@@ -51,7 +51,8 @@ return (
           <ProtectedRoute>
             <Routes>
               <Route element={<Dashboard />}>
-                <Route index element={<Profile/>}/>
+                <Route/>
+                <Route> path='profile'{<Profile/>}/>
                 <Route path='listar' element={<List/>}/>
                 <Route path='visualizar/:id' element={<Details/>}/>
                 <Route path='crear' element={<Create/>}/>
